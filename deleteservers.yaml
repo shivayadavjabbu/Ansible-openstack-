@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  tasks:
+  - name: delete server
+    os_server:
+      name: '{{ item }}'
+      state: absent
+    with_items: "{{ lookup('file', './temp/hostnames').splitlines() }}"
+  - name: list the vm in a file with hostnames
+    shell: openstack server list -f value >> ./temp/totalhosts && grep -nr "$2_network" ./temp/totalhosts > ./temp/requiredhosts && awk '{print $2}' ./temp/requiredhosts >> ./temp/namesofhost
+  - name: create a hosts file
+    shell: python3 ./hosts.py
+  - name: create a config file
+    shell: python3 ./config.py
+  - name: copy config file to
+    shell: cp ./"123456789_SSHconfig" ~/.ssh/config
+  - meta: refresh_inventory
+  - pause:
+      seconds: 10
+- hosts: webservers
+  become: yes
